@@ -48,6 +48,35 @@
           persistent
         >
 
+        <v-card-actions>
+              <v-spacer></v-spacer>
+
+              <v-btn v-bind="activatorProps" 
+                class="close-btn"
+                type="submit" rounded
+                @click="downloadResponse"
+              >
+                <v-icon size="small">mdi-download</v-icon>
+                <!-- <v-icon class="close-icon">mdi-download</v-icon> -->
+              </v-btn>
+
+              <v-btn v-bind="activatorProps" 
+                class="close-btn"
+                type="submit" rounded
+                @click="copyResponse"
+              >
+                <v-icon class="icon">mdi-content-copy</v-icon>
+              </v-btn>
+
+              <v-btn v-bind="activatorProps" 
+                class="close-btn"
+                type="submit" rounded
+                @click="dialog = false"
+              >
+                <v-icon class="icon">mdi-close-circle-outline</v-icon>
+              </v-btn>
+            </v-card-actions>
+
           <v-card
             class="dialog-card"
             prepend-icon="mdi-alert-circle"
@@ -60,33 +89,11 @@
 
             <v-divider color="white"></v-divider>
 
-            <v-card-actions>
-              <v-spacer></v-spacer>
-
-              <v-btn v-bind="activatorProps" 
-                    class="close-btn"
-                    type="submit" rounded
-                    @click="copyResponse"
-              >
-              <v-icon class="close-icon">mdi-content-copy</v-icon>
-                COPY
-              </v-btn>
-
-              <v-btn v-bind="activatorProps" 
-                    class="close-btn"
-                    type="submit" rounded
-                    @click="dialog = false"
-              >
-              <v-icon class="close-icon">mdi-close-circle-outline</v-icon>
-                CLOSE
-              </v-btn>
-            </v-card-actions>
-
             <template v-slot:activator="{ props: activatorProps }">
               <v-spacer></v-spacer>
               <v-btn v-bind="activatorProps" 
-                    type="submit" color="#26a641" rounded
-                    @click="dialog = false"
+                type="submit" color="#26a641" rounded
+                @click="dialog = false"
               >
                 Generate README
               </v-btn>
@@ -166,7 +173,18 @@ export default {
 
     copyResponse() {
       navigator.clipboard.writeText(this.response);
-      this.dialog = false;
+    },
+
+    downloadResponse() {
+      const blob = new Blob([this.response], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'README.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     },
 
     highlightCode() {
@@ -181,6 +199,10 @@ export default {
 
 
 <style scoped>
+
+.pa-4 {
+    padding: 0px !important;
+}
 
 .dialog-card {
   background-color: #161b22;
@@ -198,12 +220,15 @@ export default {
 
 .github-form {
   background-color: #0d1117;
-  padding: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-top: 20px;
   border-radius: 12px !important;
 }
 
 .button-wrapper {
   margin-top: 15px !important; 
+  margin-bottom: 0px !important; 
   display: flex;
   justify-content: center;
 }
@@ -240,7 +265,7 @@ export default {
   margin-bottom: 7px;
 }
 
-.close-icon {
+.icon {
   margin-right: 4px; 
 }
 
