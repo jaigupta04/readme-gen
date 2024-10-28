@@ -204,6 +204,8 @@ export default {
       const credential = GithubAuthProvider.credentialFromResult(result);
       const token = credential.accessToken;
 
+      console.log(token)
+
       const user = result.user;
 
       this.loggedIn = true;
