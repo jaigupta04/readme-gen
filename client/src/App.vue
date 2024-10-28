@@ -17,13 +17,40 @@
 
       <v-spacer></v-spacer>
 
-      <div ref="GoogleLoginButton" class="mr-4" style="display:none;"></div>
+      <v-btn
+        v-if="!loggedIn"
+        color="#57606a"
+        rounded="xs"
+        :exact="true"
+        variant="flat"
+        :ripple="false"
+        class="ml-4 github-btn"
+        @click="signInWithGithub"
+      >
+        <v-icon>
+          <img class="github-logo" src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub logo" width="20" />
+        </v-icon>
+        Login with GitHub
+      </v-btn>
+
+      <v-btn
+        v-else
+        color="#57606a"
+        rounded="xs"
+        :exact="true"
+        variant="flat"
+        :ripple="false"
+        class="ml-4"
+        @click="signOut"
+      >
+        Logout
+      </v-btn>
 
     </v-app-bar>
 
     <v-main class="bg-app">
       <v-container fluid>
-        <RouterView :doGet="doGet" :doPost="doPost" />
+        <RouterView :doGet="doGet" :doPost="doPost" :repos="repos" :username="username"/>
       </v-container>
     </v-main>
 
@@ -42,6 +69,8 @@
 <script>
 import { RouterLink, RouterView } from 'vue-router'
 import axios from "axios";
+import { GithubAuthProvider, signInWithPopup, signOut as firebaseSignOut } from "firebase/auth";
+import { auth } from "./firebase-config";
 
 export default {
 
@@ -51,10 +80,27 @@ export default {
       session: undefined,
       snackbar: false,
       snackbarText: '',
+      provider: new GithubAuthProvider(),
+      loggedIn: false,
+      repos: [],
+      username: "",
     }
   },
 
+  watch: {
+    watch: {
+      username() {},
+      repos() {}
+    },
+  },
+
   async mounted() {
+
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        this.loggedIn = true;
+      }
+    });
 
     navigator.geolocation.watchPosition(position => {
       this.location = {
@@ -150,7 +196,40 @@ export default {
 
       return data;
 
-    }
+    },
+
+    async signInWithGithub() {
+      const result = await signInWithPopup(auth, this.provider);
+      
+      const credential = GithubAuthProvider.credentialFromResult(result);
+      const token = credential.accessToken;
+
+      const user = result.user;
+
+      this.loggedIn = true;
+
+      const [userResponse, reposResponse] = await Promise.all([
+        axios.get("https://api.github.com/user", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+        axios.get("https://api.github.com/user/repos", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+      ]);
+
+      this.username = userResponse.data.login;
+      this.repos = reposResponse.data;
+
+    },
+
+    async signOut() {
+      await firebaseSignOut(auth);
+      this.loggedIn = false; 
+    },
 
   }
 
@@ -161,6 +240,17 @@ export default {
 
 .bg-app {
   background-color: #57606a; 
+}
+
+.github-btn {
+  margin-inline-end: 20px !important;
+}
+
+.github-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin-right: 15px;
 }
 
 </style>

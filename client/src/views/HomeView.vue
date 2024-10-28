@@ -1,6 +1,6 @@
 <template>
     <main>
-      <Readme :doGet="doGet" :doPost="doPost" />
+      <Readme :doGet="doGet" :doPost="doPost" :repos="repos" :username="username"/>
     </main>
   </template>
   
@@ -14,11 +14,18 @@
   
     props: {
       doGet: Function,
-      doPost: Function
+      doPost: Function,
+      repos: Array,
+      username: String
     },
   
     data() {
       return {};
+    },
+
+    watch: {
+      username() {},
+      repos() {}
     },
   }
 </script>

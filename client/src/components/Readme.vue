@@ -10,12 +10,15 @@
           required
           class="white-text-field"
         />
-        <v-text-field
+        <v-autocomplete
           v-model="repoName"
+          :items="repoList"
           label="Repository Name"
           variant="outlined"
           required
           class="white-text-field"
+          item-text="name"
+          item-value="name"
         />
         <v-text-field
           v-model="branchName"
@@ -130,6 +133,8 @@ export default {
   props: {
     doGet: Function,
     doPost: Function,
+    repos: Array,
+    username: String
   },
 
   data() {
@@ -142,7 +147,20 @@ export default {
       response: '',
       loading: false,
       timeout: null,
+      repoList: []
     };
+  },
+
+  watch: {
+    username(newUsername) {
+      this.githubId = newUsername
+    },
+
+    repos(newRepos) {
+      newRepos.forEach(repo => {
+        this.repoList.push(repo.name)
+      });
+    },
   },
 
   methods: {

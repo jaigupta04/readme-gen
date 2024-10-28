@@ -14,6 +14,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': 'https://readme-gen-be.vercel.app/',
+      // '/api': 'http://localhost:3000',
     }
   }
 });
