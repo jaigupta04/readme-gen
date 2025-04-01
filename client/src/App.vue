@@ -1,256 +1,156 @@
 <template>
-  <v-app>
-
-    <v-app-bar color="#0d1117" >
-
-      <router-link to="/" class="mx-4">
-        <img
-          alt="Logo"
-          src="@/assets/logo.svg"
-          width="40"
-          transition="scale-transition"
-        />
-      </router-link>
-
-      <v-btn color="#57606a" rounded="xl" :exact="true" variant="flat" :ripple="false" class="ml-4" to="/">Home</v-btn>
-      <v-btn color="#57606a" rounded="xl" :exact="true" variant="flat" :ripple="false" class="ml-4" to="/about">About</v-btn>
-
-      <v-spacer></v-spacer>
-
-      <v-btn
-        v-if="!loggedIn"
-        color="#57606a"
-        rounded="xs"
-        :exact="true"
-        variant="flat"
-        :ripple="false"
-        class="ml-4 github-btn"
-        @click="signInWithGithub"
-      >
-        <v-icon>
-          <img class="github-logo" src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub logo" width="20" />
-        </v-icon>
-        Login with GitHub
-      </v-btn>
-
-      <v-btn
-        v-else
-        color="#57606a"
-        rounded="xs"
-        :exact="true"
-        variant="flat"
-        :ripple="false"
-        class="ml-4"
-        @click="signOut"
-      >
-        Logout
-      </v-btn>
-
-    </v-app-bar>
-
-    <v-main class="bg-app">
-      <v-container fluid>
-        <RouterView :doGet="doGet" :doPost="doPost" :repos="repos" :username="username"/>
-      </v-container>
-    </v-main>
-
-    <v-snackbar v-model="snackbar" timeout="2500">
-      {{ snackbarText }}
-      <template v-slot:actions>
-        <v-btn @click="snackbar = false">
-          Close
-        </v-btn>
-      </template>
-    </v-snackbar>
-
-  </v-app>
+  <div class="app">
+    <nav-bar />
+    <router-view v-slot="{ Component }">
+      <transition name="fade" mode="out-in">
+        <component :is="Component" />
+      </transition>
+    </router-view>
+  </div>
 </template>
 
-<script>
-import { RouterLink, RouterView } from 'vue-router'
-import axios from "axios";
-import { GithubAuthProvider, signInWithPopup, signOut as firebaseSignOut } from "firebase/auth";
-import { auth } from "./firebase-config";
+<script setup>
+import { provide } from 'vue';
+import NavBar from './components/NavBar.vue';
 
-export default {
-
-  data() {
-    return {
-      location: undefined,
-      session: undefined,
-      snackbar: false,
-      snackbarText: '',
-      provider: new GithubAuthProvider(),
-      loggedIn: false,
-      repos: [],
-      username: "",
-    }
-  },
-
-  watch: {
-    watch: {
-      username() {},
-      repos() {}
-    },
-  },
-
-  async mounted() {
-
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        this.loggedIn = true;
-      }
-    });
-
-    navigator.geolocation.watchPosition(position => {
-      this.location = {
-        coords: {
-          latitude : position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy : position.coords.accuracy
-        },
-        timestamp: position.timestamp
-      }
-    });
-
-    for(let cookie of document.cookie.split(';')) {
-      cookie = cookie.trim();
-      if(cookie.startsWith('sessionId=') && cookie != 'sessionId=') {
-        this.session = { id: cookie.substring('sessionId='.length) };
-        break;
-      }
-    }
-
-    if(this.session) {
-      // this.session = await this.doGet('/api/user/session');
-    } else {
-      // this.session = await this.doPost('/api/user/session', { userAgent: navigator.userAgent });
-      document.cookie = `sessionId=${ this.session.id }; path=/;`;
-    }
-
-    if(this.session.status == 'active') {
-      this.$refs['GoogleLoginButton'].style.display = '';
-      window.google.accounts.id.initialize({
-        client_id: '220251834863-p6gimkv0cgepodik4c1s8cs471dv9ioq.apps.googleusercontent.com',
-        callback: async (resp) => {
-          await this.doPost('/api/user/google-login', { idToken: resp.credential });
-          window.location.reload();
-        },
-        auto_select: true
-      });
-      window.google.accounts.id.renderButton(this.$refs['GoogleLoginButton'], {});
-      window.google.accounts.id.prompt();
-    } else if(this.session.status == 'loggedin') {
-      setInterval(() => {
-        this.doPost('/api/user/session/ping', { userAgent: navigator.userAgent, location: this.location });
-      }, 60 * 1000);
-    }
-
-  },
-
-  methods: {
-
-    async doRequest(req, retry) {
-
-      let resp = null;
-      let options = { ...req, validateStatus: status => [ 200, 201, 400, 401, 403 ].includes(status) };
-      if(retry) {
-        try {
-          resp = await axios(options);
-        } catch(e) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-          return await this.doRequest(req, retry - 1);
-        }
-      } else {
-        resp = await axios(options);
-      }
-
-      if(resp.status == 401) {
-        document.cookie = 'sessionId=; path=/;';
-        window.location.reload();
-      } else if(resp.status == 201 || resp.status == 400 || resp.status == 403) {
-        while(this.snackbar)
-          await new Promise(resolve => setTimeout(resolve, 100));
-        this.snackbarText = resp.data;
-        this.snackbar = true;
-      } else {
-        return resp.data;
-      }
-
-    },
-
-    async doGet(api, query = {}, retry = 3) {
-      return await this.doRequest({ method: 'get', url: api, params: query }, retry);
-    },
-
-    async doPost(api, body = {}, retry = 0) {
-
-      let data = await this.doRequest({ method: 'post', url: api, data: body }, retry);
-
-      if(data && data.message) {
-        while(this.snackbar)
-          await new Promise(resolve => setTimeout(resolve, 100));
-        this.snackbarText = data.message;
-        this.snackbar = true;
-      }
-
-      return data;
-
-    },
-
-    async signInWithGithub() {
-      const result = await signInWithPopup(auth, this.provider);
-      
-      const credential = GithubAuthProvider.credentialFromResult(result);
-      const token = credential.accessToken;
-
-      const user = result.user;
-
-      this.loggedIn = true;
-
-      const [userResponse, reposResponse] = await Promise.all([
-        axios.get("https://api.github.com/user", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }),
-        axios.get("https://api.github.com/user/repos", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }),
-      ]);
-
-      this.username = userResponse.data.login;
-      this.repos = reposResponse.data;
-
-    },
-
-    async signOut() {
-      await firebaseSignOut(auth);
-      this.loggedIn = false; 
-    },
-
-  }
-
-};
+// Provide GitHub colors as global values
+provide('githubColors', {
+  primary: '#58a6ff',
+  background: '#0d1117',
+  secondaryBg: '#161b22',
+  text: '#c9d1d9',
+  border: '#30363d',
+  success: '#2ea043',
+});
 </script>
 
-<style scoped>
-
-.bg-app {
-  background-color: #57606a; 
+<style>
+:root {
+  --primary: #58a6ff;
+  --background: #0d1117;
+  --secondary-bg: #161b22;
+  --text: #c9d1d9;
+  --border: #30363d;
+  --success: #2ea043;
 }
 
-.github-btn {
-  margin-inline-end: 20px !important;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
 }
 
-.github-logo {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  margin-right: 15px;
+body {
+  background-color: var(--background);
+  color: var(--text);
+  line-height: 1.5;
 }
 
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid;
+  border-radius: 6px;
+  appearance: none;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-primary:hover {
+  background-color: #0255b3;
+}
+
+.btn-success {
+  color: #fff;
+  background-color: var(--success);
+  border-color: var(--success);
+}
+
+.btn-success:hover {
+  background-color: #2c974b;
+}
+
+.btn-outline {
+  color: var(--primary);
+  background-color: transparent;
+  border-color: var(--border);
+}
+
+.btn-outline:hover {
+  color: #fff;
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.card {
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--text);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.3);
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 </style>

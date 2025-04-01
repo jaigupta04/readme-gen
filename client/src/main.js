@@ -1,33 +1,35 @@
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router'
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
+import { createRouter, createWebHistory } from 'vue-router';
+import App from './App.vue';
+import HomePage from './views/HomePage.vue';
+import GeneratorPage from './views/GeneratorPage.vue';
+import { marked } from 'marked';
 
-// Vuetify
-// import './style.css'
-import 'vuetify/styles'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
-import { md1 } from 'vuetify/blueprints'
-import { aliases, mdi } from 'vuetify/iconsets/mdi'
-import '@mdi/font/css/materialdesignicons.css'
+// Configure marked options
+marked.setOptions({
+  breaks: true,
+  gfm: true,
+  headerIds: true,
+  mangle: false
+});
 
-const vuetify = createVuetify({
-  components,
-  directives,
-  blueprint: md1,
-  icons: {
-    defaultSet: 'mdi',
-    aliases,
-    sets: {
-      mdi,
-    },
-  },
-})
+// Create router
+const router = createRouter({
+  history: createWebHistory(),
+  routes: [
+    { path: '/', component: HomePage },
+    { path: '/generator', component: GeneratorPage }
+  ],
+  scrollBehavior() {
+    return { top: 0 };
+  }
+});
 
-const app = createApp(App)
+// Create and mount the app
+const app = createApp(App);
+const pinia = createPinia();
 
-app.use(router)
-app.use(vuetify)
-
-app.mount('#app')
+app.use(pinia);
+app.use(router);
+app.mount('#app');
