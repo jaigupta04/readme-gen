@@ -12,6 +12,7 @@ const corsOptions = {
 app.use(express.json());
 app.use(cors(corsOptions));
 
+// test api
 app.get('/api/test', async (req, res) => {
   res.send('Hello World!');
 })
@@ -27,8 +28,8 @@ app.get('/api/generate', async (req, res) => {
 
 });
 
-// app.listen(3000, () => {
-//   console.log('Server is running on port 3000');
-// });
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
+});
 
 module.exports = app;
