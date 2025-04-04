@@ -5,8 +5,8 @@
       "destination": "https://readme-gen-be-e9ffbmasdycccyfr.centralus-01.azurewebsites.net/api/:category/"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
