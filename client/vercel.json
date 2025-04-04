@@ -4,8 +4,5 @@
         "source": "/api/:category([^/]+)",
         "destination": "https://readme-gen-be.vercel.app/api/:category/"
       }
-    ],
-    "routes": [
-      { "src": "/(.*)", "dest": "/" }
     ]
   }
