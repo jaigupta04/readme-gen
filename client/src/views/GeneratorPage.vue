@@ -324,7 +324,7 @@ const downloadMarkdown = () => {
 
 .mode-description {
   color: #8b949e;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
 }
 
 .generator-container {
