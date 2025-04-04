@@ -2,7 +2,7 @@
     "rewrites": [
       {
         "source": "/api/:category([^/]+)",
-        "destination": "https://readme-gen-be.vercel.app/api/:category/"
+        "destination": "https://readme-gen-be-e9ffbmasdycccyfr.centralus-01.azurewebsites.net/api/:category/"
       }
     ]
   }
