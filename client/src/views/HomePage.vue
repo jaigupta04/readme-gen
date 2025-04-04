@@ -14,7 +14,9 @@
           </div>
         </div>
         <div class="hero-image">
-          <img src="../../public/readme.png" alt="README Generator Preview" />
+          <div class="image-3d-wrapper">
+            <img src="../../public/readme.png" alt="README Generator Preview" />
+          </div>
         </div>
       </div>
     </section>
@@ -229,6 +231,22 @@
 
 .step-description {
   color: #8b949e;
+}
+
+.image-3d-wrapper {
+  perspective: 1000px; /* Creates the 3D perspective */
+}
+
+.image-3d-wrapper img {
+  transform: rotateY(-15deg) rotateX(5deg);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 12px;
+}
+
+.image-3d-wrapper img:hover {
+  transform: rotateY(-5deg) rotateX(0deg) scale(1.03);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
 }
 
 @media (max-width: 768px) {

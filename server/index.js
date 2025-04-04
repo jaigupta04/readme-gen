@@ -4,6 +4,7 @@ const cors = require('cors');
 const app = express();
 
 const Data = require('./data');
+const port = process.env.PORT || 3000;
 
 const corsOptions = {
   origin: 'https://readme-gen-ai.vercel.app',
@@ -28,8 +29,8 @@ app.get('/api/generate', async (req, res) => {
 
 });
 
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
 
 module.exports = app;

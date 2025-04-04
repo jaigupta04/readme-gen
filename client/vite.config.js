@@ -14,7 +14,6 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': 'https://readme-gen-be-e9ffbmasdycccyfr.centralus-01.azurewebsites.net/',
-      // '/api': 'https://readme-gen-be.vercel.app/',
       // '/api': 'http://localhost:3000',
     }
   }
