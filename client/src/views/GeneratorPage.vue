@@ -3,6 +3,28 @@
     <div class="container">
       <h1 class="page-title">README Generator</h1>
       
+      <div class="mode-toggle-container">
+        <div class="mode-toggle">
+          <button 
+            :class="['toggle-btn', { active: mode === 'basic' }]" 
+            @click="setMode('basic')"
+          >
+            Basic
+          </button>
+          <button 
+            :class="['toggle-btn', { active: mode === 'smart' }]" 
+            @click="setMode('smart')"
+          >
+            Smart
+            <span class="coming-soon-badge">Coming Soon</span>
+          </button>
+        </div>
+        <div class="mode-description">
+          <p v-if="mode === 'basic'">Generate README for a single file in your repository</p>
+          <p v-else>Generate comprehensive README for your entire GitHub project</p>
+        </div>
+      </div>
+      
       <div class="generator-container">
         <div class="form-section card">
           <h2 class="section-title">Repository Details</h2>
@@ -19,7 +41,7 @@
               />
             </div>
             
-            <div v-if = "!loggedIn"class="form-group">
+            <div v-if="!loggedIn" class="form-group">
               <label for="repo-name" class="form-label">Repository Name</label>
               <input 
                 type="text" 
@@ -63,21 +85,35 @@
               />
             </div>
             
-            <div class="form-group">
-              <label for="file-name" class="form-label">File Name</label>
+            <div v-if="mode === 'basic'" class="form-group">
+              <label for="file-name" class="form-label">File Path</label>
               <input 
                 type="text" 
                 id="file-name" 
                 v-model="formData.fileName" 
                 class="form-control" 
-                placeholder="e.g., README.md"
+                placeholder="e.g., index.js or data/index.js"
                 required
               />
+              <small class="form-hint">For files in folders, provide the complete path (e.g., data/index.js)</small>
             </div>
             
-            <button type="submit" class="btn btn-success generate-btn">
+            <button 
+              type="submit" 
+              class="btn btn-success generate-btn"
+              :disabled="mode === 'smart'"
+            >
               Generate README
             </button>
+            
+            <div v-if="mode === 'smart'" class="smart-mode-notice">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <p>Smart mode is coming soon! This feature will analyze your entire repository structure and generate a comprehensive README.</p>
+            </div>
           </form>
         </div>
         
@@ -144,11 +180,13 @@ import axios from 'axios';
 
 const store = useUserStore();
 
+const mode = ref('basic'); // 'basic' or 'smart'
+
 const formData = ref({
   username: store.username,
   repoName: '',
   branchName: 'main',
-  fileName: 'README.md'
+  fileName: ''
 });
 
 const repos = computed(() => store.repos);
@@ -161,20 +199,39 @@ watch(() => store.username, (newUsername) => {
 const isLoading = ref(false);
 const markdownContent = ref('');
 
+const setMode = (newMode) => {
+  mode.value = newMode;
+  // Clear any previous results when switching modes
+  if (markdownContent.value) {
+    markdownContent.value = '';
+  }
+};
+
 const generateReadme = async () => {
+  if (mode.value === 'smart') {
+    // Smart mode is not implemented yet
+    return;
+  }
+  
   isLoading.value = true;
 
-  const resp = await axios.get('/api/generate', {
-    params: {
-      githubId: formData.value.username,
-      repoName: formData.value.repoName,
-      branchName: formData.value.branchName,
-      fileName: formData.value.fileName,
-    }
-  });
+  try {
+    const resp = await axios.get('/api/generate', {
+      params: {
+        githubId: formData.value.username,
+        repoName: formData.value.repoName,
+        branchName: formData.value.branchName,
+        fileName: formData.value.fileName,
+      }
+    });
 
-  markdownContent.value = resp.data;
-  isLoading.value = false;
+    markdownContent.value = resp.data;
+  } catch (error) {
+    console.error('Error generating README:', error);
+    // Handle error
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 const copyMarkdown = () => {
@@ -208,8 +265,66 @@ const downloadMarkdown = () => {
 
 .page-title {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   font-size: 2rem;
+}
+
+.mode-toggle-container {
+  max-width: 600px;
+  margin: 0 auto 2rem;
+  text-align: center;
+}
+
+.mode-toggle {
+  display: flex;
+  background-color: var(--secondary-bg);
+  border-radius: 8px;
+  padding: 0.25rem;
+  margin-bottom: 0.75rem;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.toggle-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  border-radius: 6px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.toggle-btn.active {
+  background-color: var(--primary);
+  color: #fff;
+}
+
+.toggle-btn:not(.active):hover {
+  background-color: rgba(88, 166, 255, 0.1);
+}
+
+.coming-soon-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: var(--success);
+  color: white;
+  font-size: 0.6rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 10px;
+  font-weight: bold;
+  transform: scale(0.85);
+}
+
+.mode-description {
+  color: #8b949e;
+  font-size: 0.9rem;
 }
 
 .generator-container {
@@ -239,8 +354,43 @@ const downloadMarkdown = () => {
   flex-direction: column;
 }
 
+.form-hint {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: #8b949e;
+}
+
 .generate-btn {
   margin-top: 1rem;
+}
+
+.generate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.smart-mode-notice {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: rgba(88, 166, 255, 0.1);
+  border-radius: 6px;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.smart-mode-notice svg {
+  color: var(--primary);
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.smart-mode-notice p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.5;
 }
 
 .preview-header {
@@ -332,6 +482,18 @@ const downloadMarkdown = () => {
 @media (max-width: 992px) {
   .generator-container {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 576px) {
+  .mode-toggle {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .coming-soon-badge {
+    top: 0;
+    right: 0;
   }
 }
 </style>
