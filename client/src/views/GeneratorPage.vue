@@ -249,7 +249,7 @@ const downloadMarkdown = () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = formData.value.fileName || 'README.md';
+  a.download = 'README.md';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
