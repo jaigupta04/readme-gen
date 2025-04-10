@@ -130,14 +130,14 @@
                   class="form-control" 
                   placeholder="e.g., index.js or data/index.js"
                   required
-                  @focus="showFileTree = true"
+                  @focus="handleFileTreeFocus"
                 />
                 <div 
-                  v-if="tree.length > 0" 
                   class="file-tree-toggle"
-                  @click="showFileTree = !showFileTree"
                 >
+                  <div v-if="isTreeLoading" class="spinner"></div>
                   <svg 
+                    v-else-if="tree.length > 0"
                     xmlns="http://www.w3.org/2000/svg" 
                     width="16" 
                     height="16" 
@@ -147,6 +147,7 @@
                     stroke-width="2" 
                     stroke-linecap="round" 
                     stroke-linejoin="round"
+                    @click="showFileTree = !showFileTree"
                   >
                     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                   </svg>
@@ -319,9 +320,18 @@ const markdownContent = ref('');
 const tree = ref([]);
 const isRepoDropdownOpen = ref(false);
 const showFileTree = ref(false);
+const isTreeLoading = ref(false);
+
+const handleFileTreeFocus = () => {
+  if (!showFileTree.value) {
+    showFileTree.value = true;
+  }
+};
 
 const onRepoChange = async () => {
   if (!formData.value.repoName) return;
+  
+  isTreeLoading.value = true;
   
   try {
     const resp = await axios.get('/api/tree', {
@@ -336,6 +346,8 @@ const onRepoChange = async () => {
   } catch (error) {
     console.error('Error fetching repository tree:', error);
     tree.value = [];
+  } finally {
+    isTreeLoading.value = false;
   }
 };
 
@@ -883,6 +895,21 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   min-height: 400px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(88, 166, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: var(--primary);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 992px) {
