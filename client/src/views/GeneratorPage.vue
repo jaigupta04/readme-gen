@@ -56,21 +56,56 @@
             <!-- Repository Dropdown -->
             <div v-else class="form-group">
               <label for="repo-name" class="form-label">Select Repository</label>
-              <select 
-                id="repo-name" 
-                v-model="formData.repoName" 
-                class="form-control"
-                required
-              >
-                <option value="" disabled>Select a repository</option>
-                <option 
-                  v-for="repo in repos" 
-                  :key="repo.id" 
-                  :value="repo.name"
+              <div class="custom-select">
+                <div 
+                  class="select-selected"
+                  @click="toggleRepoDropdown"
                 >
-                  {{ repo.name }}
-                </option>
-              </select>
+                  <span>{{ formData.repoName || 'Select a repository' }}</span>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    stroke-width="2" 
+                    stroke-linecap="round" 
+                    stroke-linejoin="round"
+                    :class="['chevron-icon', { 'open': isRepoDropdownOpen }]"
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+                <div 
+                  class="select-items" 
+                  :class="{ 'select-hide': !isRepoDropdownOpen }"
+                >
+                  <div 
+                    v-for="repo in repos" 
+                    :key="repo.id"
+                    @click="selectRepo(repo.name)"
+                    class="select-item"
+                  >
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      stroke-width="2" 
+                      stroke-linecap="round" 
+                      stroke-linejoin="round"
+                      class="repo-icon"
+                    >
+                      <path d="M3 3v18h18"></path>
+                      <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path>
+                    </svg>
+                    {{ repo.name }}
+                  </div>
+                </div>
+              </div>
             </div>
             
             <div class="form-group">
@@ -87,14 +122,96 @@
             
             <div v-if="mode === 'basic'" class="form-group">
               <label for="file-name" class="form-label">File Path</label>
-              <input 
-                type="text" 
-                id="file-name" 
-                v-model="formData.fileName" 
-                class="form-control" 
-                placeholder="e.g., index.js or data/index.js"
-                required
-              />
+              <div class="file-path-container">
+                <input 
+                  type="text" 
+                  id="file-name" 
+                  v-model="formData.fileName" 
+                  class="form-control" 
+                  placeholder="e.g., index.js or data/index.js"
+                  required
+                  @focus="showFileTree = true"
+                />
+                <div 
+                  v-if="tree.length > 0" 
+                  class="file-tree-toggle"
+                  @click="showFileTree = !showFileTree"
+                >
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    stroke-width="2" 
+                    stroke-linecap="round" 
+                    stroke-linejoin="round"
+                  >
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                </div>
+              </div>
+              
+              <div v-if="showFileTree && tree.length > 0" class="file-tree-dropdown">
+                <div class="file-tree">
+                  <div class="file-tree-header">
+                    <span>Repository Files</span>
+                    <button 
+                      type="button" 
+                      class="close-tree-btn"
+                      @click="showFileTree = false"
+                    >
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="16" 
+                        height="16" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        stroke-width="2" 
+                        stroke-linecap="round" 
+                        stroke-linejoin="round"
+                      >
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="file-tree-content">
+                    <template v-for="(item, index) in organizedTree" :key="index">
+                      <div 
+                        v-if="!item.isFolder" 
+                        class="file-item"
+                        @click="selectFile(item.path)"
+                      >
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          width="16" 
+                          height="16" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          stroke-width="2" 
+                          stroke-linecap="round" 
+                          stroke-linejoin="round"
+                          class="file-icon"
+                        >
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                          <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        <span>{{ item.name }}</span>
+                      </div>
+                      <folder-tree 
+                        v-else 
+                        :folder="item" 
+                        @select-file="selectFile"
+                      />
+                    </template>
+                  </div>
+                </div>
+              </div>
+              
               <small class="form-hint">For files in folders, provide the complete path (e.g., data/index.js)</small>
             </div>
             
@@ -177,6 +294,7 @@ import LoadingScreen from '../components/LoadingScreen.vue';
 import MarkdownPreview from '../components/MarkdownPreview.vue';
 import { useUserStore } from '@/store';
 import axios from 'axios';
+import FolderTree from '../components/FolderTree.vue';
 
 const store = useUserStore();
 
@@ -198,6 +316,110 @@ watch(() => store.username, (newUsername) => {
 
 const isLoading = ref(false);
 const markdownContent = ref('');
+const tree = ref([]);
+const isRepoDropdownOpen = ref(false);
+const showFileTree = ref(false);
+
+const onRepoChange = async () => {
+  if (!formData.value.repoName) return;
+  
+  try {
+    const resp = await axios.get('/api/tree', {
+      params: {
+        githubId: formData.value.username,
+        repoName: formData.value.repoName,
+        branchName: formData.value.branchName,
+      }
+    });
+
+    tree.value = resp.data;
+  } catch (error) {
+    console.error('Error fetching repository tree:', error);
+    tree.value = [];
+  }
+};
+
+// Organize the flat tree into a nested structure
+const organizedTree = computed(() => {
+  const result = [];
+  const folderMap = new Map();
+  
+  // First pass: create all folders
+  tree.value.forEach(path => {
+    const parts = path.split('/');
+    let currentPath = '';
+    
+    // Create folder structure
+    for (let i = 0; i < parts.length - 1; i++) {
+      const folderName = parts[i];
+      currentPath = currentPath ? `${currentPath}/${folderName}` : folderName;
+      
+      if (!folderMap.has(currentPath)) {
+        const folder = {
+          name: folderName,
+          path: currentPath,
+          isFolder: true,
+          children: []
+        };
+        folderMap.set(currentPath, folder);
+        
+        // Add to parent folder or root
+        if (i === 0) {
+          result.push(folder);
+        } else {
+          const parentPath = parts.slice(0, i).join('/');
+          const parent = folderMap.get(parentPath);
+          if (parent) {
+            parent.children.push(folder);
+          }
+        }
+      }
+    }
+  });
+  
+  // Second pass: add files
+  tree.value.forEach(path => {
+    const parts = path.split('/');
+    const fileName = parts[parts.length - 1];
+    
+    // File at root level
+    if (parts.length === 1) {
+      result.push({
+        name: fileName,
+        path: fileName,
+        isFolder: false
+      });
+    } else {
+      // File in a folder
+      const folderPath = parts.slice(0, parts.length - 1).join('/');
+      const folder = folderMap.get(folderPath);
+      if (folder) {
+        folder.children.push({
+          name: fileName,
+          path: path,
+          isFolder: false
+        });
+      }
+    }
+  });
+  
+  return result;
+});
+
+const toggleRepoDropdown = () => {
+  isRepoDropdownOpen.value = !isRepoDropdownOpen.value;
+};
+
+const selectRepo = async (repoName) => {
+  formData.value.repoName = repoName;
+  isRepoDropdownOpen.value = false;
+  await onRepoChange();
+};
+
+const selectFile = (filePath) => {
+  formData.value.fileName = filePath;
+  showFileTree.value = false;
+};
 
 const setMode = (newMode) => {
   mode.value = newMode;
@@ -255,6 +477,29 @@ const downloadMarkdown = () => {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 };
+
+// Close dropdowns when clicking outside
+onMounted(() => {
+  const handleClickOutside = (event) => {
+    const repoDropdown = document.querySelector('.custom-select');
+    const fileTreeDropdown = document.querySelector('.file-tree-dropdown');
+    
+    if (repoDropdown && !repoDropdown.contains(event.target)) {
+      isRepoDropdownOpen.value = false;
+    }
+    
+    if (fileTreeDropdown && !fileTreeDropdown.contains(event.target) && 
+        !document.querySelector('.file-path-container').contains(event.target)) {
+      showFileTree.value = false;
+    }
+  };
+
+  document.addEventListener('click', handleClickOutside);
+
+  return () => {
+    document.removeEventListener('click', handleClickOutside);
+  };
+});
 </script>
 
 <style scoped>
@@ -349,9 +594,170 @@ const downloadMarkdown = () => {
   font-size: 1.5rem;
 }
 
+.form-group {
+  position: relative; /* Add this to ensure proper dropdown positioning */
+  margin-bottom: 1rem;
+}
+
 .generator-form {
   display: flex;
   flex-direction: column;
+}
+
+/* Custom Select Styling */
+.custom-select {
+  position: relative;
+  width: 100%;
+}
+
+.select-selected {
+  background-color: var(--background);
+  color: var(--text);
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.select-selected:hover {
+  border-color: var(--primary);
+}
+
+.chevron-icon {
+  transition: transform 0.2s ease;
+}
+
+.chevron-icon.open {
+  transform: rotate(180deg);
+}
+
+.select-items {
+  position: absolute;
+  background-color: var(--secondary-bg);
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 99;
+  max-height: 250px;
+  overflow-y: auto;
+  border-radius: 6px;
+  margin-top: 0.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border);
+}
+
+.select-hide {
+  display: none;
+}
+
+.select-item {
+  color: var(--text);
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.select-item:hover {
+  background-color: rgba(88, 166, 255, 0.1);
+}
+
+.repo-icon {
+  color: var(--primary);
+}
+
+/* File Path Input and Tree */
+.file-path-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.file-tree-toggle {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: var(--text);
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.file-tree-toggle:hover {
+  opacity: 1;
+}
+
+.file-tree-dropdown {
+  position: absolute;
+  z-index: 99;
+  width: 100%;
+  margin-top: 0.25rem;
+  background-color: var(--secondary-bg);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border);
+  max-height: 300px;
+  max-width: 100%; /* Ensure it doesn't exceed parent width */
+  box-sizing: border-box; /* Include padding and border in the width */
+  left: 0; /* Align to the left edge of the parent */
+  right: 0; /* Align to the right edge of the parent */
+}
+
+.file-tree {
+  display: flex;
+  flex-direction: column;
+}
+
+.file-tree-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+
+.close-tree-btn {
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  padding: 0.25rem;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.close-tree-btn:hover {
+  opacity: 1;
+}
+
+.file-tree-content {
+  padding: 0.5rem 0;
+  overflow-y: auto;
+  max-height: 250px;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.file-item:hover {
+  background-color: rgba(88, 166, 255, 0.1);
+}
+
+.file-icon {
+  color: #8b949e;
 }
 
 .form-hint {

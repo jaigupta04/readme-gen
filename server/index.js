@@ -18,6 +18,14 @@ app.get('/api/test', async (req, res) => {
   res.send('Hello World!');
 })
 
+app.get('/api/tree', async (req, res) => {
+  const { githubId, repoName, branchName} = req.query;
+
+  const resp = await Data.fetchAllFiles(githubId, repoName, branchName);
+
+  res.send(resp);
+})
+
 
 app.get('/api/generate', async (req, res) => {
 
