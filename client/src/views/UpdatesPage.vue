@@ -10,66 +10,52 @@
             Track the evolution of README Generator with our detailed version history. See what features and improvements have been added over time.
           </p>
         </div>
+
+      <!-- yello tag for future use-->
+        <!-- <div class="feature-item">
+          <div class="feature-header">
+            <div class="feature-tag improved">Improved</div>
+            <h4 class="feature-title">File Tree Navigation</h4>
+          </div>
+          <p class="feature-description">
+            Enhanced the file tree explorer with better visual hierarchy and performance.
+          </p>
+          <ul class="feature-details">
+            <li>Optimized tree rendering for large repositories</li>
+            <li>Improved folder expansion/collapse animations</li>
+            <li>Better error handling for failed API requests</li>
+          </ul>
+        </div> -->
         
         <div class="version-timeline">
-          <!-- Version 1.2.0 -->
-          <!-- <div class="version-item">
+          <!-- Version 2.1.1 -->
+          <div class="version-item">
             <div class="version-badge">
-              <span class="version-number">v1.2.0</span>
-              <span class="version-date">April 11, 2025</span>
+              <span class="version-number">v2.1.1</span>
+              <span class="version-date">April 12, 2025</span>
             </div>
             
             <div class="version-content">
-              <h3 class="version-title">Branch Selection & File Tree Improvements</h3>
+              <h3 class="version-title">Github login</h3>
               
               <div class="version-features">
-                <div class="feature-item">
-                  <div class="feature-header">
-                    <div class="feature-tag new">New</div>
-                    <h4 class="feature-title">Branch Selection Dropdown</h4>
-                  </div>
-                  <p class="feature-description">
-                    Added a dropdown menu for selecting repository branches, replacing the text input field.
-                  </p>
-                  <ul class="feature-details">
-                    <li>Automatic branch fetching after repository selection</li>
-                    <li>Visual loading indicator during API requests</li>
-                    <li>Auto-selection of the only branch when only one is available</li>
-                  </ul>
-                </div>
-                
-                <div class="feature-item">
-                  <div class="feature-header">
-                    <div class="feature-tag improved">Improved</div>
-                    <h4 class="feature-title">File Tree Navigation</h4>
-                  </div>
-                  <p class="feature-description">
-                    Enhanced the file tree explorer with better visual hierarchy and performance.
-                  </p>
-                  <ul class="feature-details">
-                    <li>Optimized tree rendering for large repositories</li>
-                    <li>Improved folder expansion/collapse animations</li>
-                    <li>Better error handling for failed API requests</li>
-                  </ul>
-                </div>
                 
                 <div class="feature-item">
                   <div class="feature-header">
                     <div class="feature-tag fixed">Fixed</div>
-                    <h4 class="feature-title">UI Responsiveness</h4>
+                    <h4 class="feature-title">Automatic Github login</h4>
                   </div>
                   <p class="feature-description">
-                    Fixed several UI issues in mobile view and improved overall responsiveness.
+                    Resolved issue where app auto-logged into GitHub without prompting user for account selection.
                   </p>
                   <ul class="feature-details">
-                    <li>Fixed navigation menu overflow on small screens</li>
-                    <li>Improved form layout on mobile devices</li>
-                    <li>Fixed file tree dropdown positioning</li>
+                    <li>More security</li>
+                    <li>Asking for account selection before login</li>
                   </ul>
                 </div>
               </div>
             </div>
-          </div> -->
+          </div>
           
           <!-- Version 2.1.0 -->
           <div class="version-item">

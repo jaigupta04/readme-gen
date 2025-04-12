@@ -64,13 +64,47 @@ const repos = ref([]);
 const isMenuOpen = ref(false);
 
 const provider = new GithubAuthProvider();
+provider.setCustomParameters({
+  prompt: "select_account"
+});
 
 // Initialize loggedIn with the current authentication state
 onMounted(() => {
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     loggedIn.value = !!user;
+
+    if (user) {
+      const token = await user.getIdToken(); // Firebase token, not GitHub token
+
+      // Get GitHub OAuth access token from user credential (stored elsewhere if needed)
+      // If you can't get it, persist it in localStorage during login
+      
+      const savedToken = localStorage.getItem('github_token');
+      if (savedToken) {
+        try {
+          const [userResponse, reposResponse] = await Promise.all([
+            axios.get('https://api.github.com/user', {
+              headers: { Authorization: `Bearer ${savedToken}` }
+            }),
+            axios.get('https://api.github.com/user/repos?type=owner', {
+              headers: { Authorization: `Bearer ${savedToken}` }
+            })
+          ]);
+
+          username.value = userResponse.data.login;
+          repos.value = reposResponse.data;
+
+          store.username = username.value;
+          store.repos = repos.value;
+          store.loggedIn = true;
+        } catch (error) {
+          console.error('Failed to rehydrate GitHub data', error);
+        }
+      }
+    }
   });
 });
+
 
 const loginWithGitHub = async () => {
   isMenuOpen.value = false; // Close mobile menu when logging in
@@ -78,6 +112,7 @@ const loginWithGitHub = async () => {
   const result = await signInWithPopup(auth, provider);
   const credential = GithubAuthProvider.credentialFromResult(result);
   const token = credential.accessToken;
+  localStorage.setItem('github_token', token);
   const user = result.user;
 
   loggedIn.value = true;
@@ -104,6 +139,8 @@ const signOut = async () => {
   isMenuOpen.value = false; // Close mobile menu when logging out
   
   await firebaseSignOut(auth);
+  localStorage.removeItem('github_token');
+
   loggedIn.value = false;
   username.value = '';
   repos.value = [];
