@@ -1,9 +1,7 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
-import { createRouter, createWebHistory } from 'vue-router';
 import App from './App.vue';
-import HomePage from './views/HomePage.vue';
-import GeneratorPage from './views/GeneratorPage.vue';
+import router from './router';
 import { marked } from 'marked';
 
 // Configure marked options
@@ -12,18 +10,6 @@ marked.setOptions({
   gfm: true,
   headerIds: true,
   mangle: false
-});
-
-// Create router
-const router = createRouter({
-  history: createWebHistory(),
-  routes: [
-    { path: '/', component: HomePage },
-    { path: '/generator', component: GeneratorPage }
-  ],
-  scrollBehavior() {
-    return { top: 0 };
-  }
 });
 
 // Create and mount the app

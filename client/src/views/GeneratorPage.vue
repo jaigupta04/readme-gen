@@ -107,17 +107,82 @@
                 </div>
               </div>
             </div>
-            
-            <div class="form-group">
+
+            <div v-if="!loggedIn" class="form-group">
               <label for="branch-name" class="form-label">Branch Name</label>
               <input 
                 type="text" 
                 id="branch-name" 
                 v-model="formData.branchName" 
                 class="form-control" 
-                placeholder="e.g., main"
+                placeholder="e.g., main or master"
                 required
               />
+            </div>
+            
+            <!-- Branch Dropdown -->
+            <div v-else class="form-group">
+              <label for="branch-name" class="form-label">Branch Name</label>
+              <div class="custom-select">
+                <div 
+                  class="select-selected"
+                  @click="toggleBranchDropdown"
+                >
+                  <span>{{ formData.branchName || 'Select a branch' }}</span>
+                  <div v-if="isBranchLoading" class="spinner"></div>
+                  <svg 
+                    v-else
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    stroke-width="2" 
+                    stroke-linecap="round" 
+                    stroke-linejoin="round"
+                    :class="['chevron-icon', { 'open': isBranchDropdownOpen }]"
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+                <div 
+                  class="select-items" 
+                  :class="{ 'select-hide': !isBranchDropdownOpen }"
+                >
+                  <div 
+                    v-if="branches.length === 0 && !isBranchLoading"
+                    class="select-item empty-item"
+                  >
+                    <span>No branches found</span>
+                  </div>
+                  <div 
+                    v-for="branch in branches" 
+                    :key="branch"
+                    @click="selectBranch(branch)"
+                    class="select-item"
+                  >
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      stroke-width="2" 
+                      stroke-linecap="round" 
+                      stroke-linejoin="round"
+                      class="branch-icon"
+                    >
+                      <line x1="6" y1="3" x2="6" y2="15"></line>
+                      <circle cx="18" cy="6" r="3"></circle>
+                      <circle cx="6" cy="18" r="3"></circle>
+                      <path d="M18 9a9 9 0 0 1-9 9"></path>
+                    </svg>
+                    {{ branch }}
+                  </div>
+                </div>
+              </div>
             </div>
             
             <div v-if="mode === 'basic'" class="form-group">
@@ -304,7 +369,7 @@ const mode = ref('basic'); // 'basic' or 'smart'
 const formData = ref({
   username: store.username,
   repoName: '',
-  branchName: 'main',
+  branchName: '',
   fileName: ''
 });
 
@@ -319,17 +384,54 @@ const isLoading = ref(false);
 const markdownContent = ref('');
 const tree = ref([]);
 const isRepoDropdownOpen = ref(false);
+const isBranchDropdownOpen = ref(false);
 const showFileTree = ref(false);
 const isTreeLoading = ref(false);
+const isBranchLoading = ref(false);
+const branches = ref([]);
 
 const handleFileTreeFocus = () => {
-  if (!showFileTree.value) {
+  if (tree.value.length > 0 && !showFileTree.value) {
     showFileTree.value = true;
   }
 };
 
-const onRepoChange = async () => {
+const fetchBranches = async () => {
   if (!formData.value.repoName) return;
+  
+  isBranchLoading.value = true;
+  formData.value.branchName = ''; // Clear previous branch selection
+  tree.value = []; // Clear previous tree
+
+  try {
+    const resp = await axios.get('/api/branch', {
+      params: {
+        githubId: formData.value.username,
+        repoName: formData.value.repoName,
+      }
+    });
+
+    branches.value = resp.data;
+    
+    // If branches are found, auto-select the first one
+    if (branches.value.length > 0) {
+      formData.value.branchName = branches.value[0];
+      
+      // If there's only one branch, automatically fetch the tree
+      if (branches.value.length === 1) {
+        fetchTree();
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching repository branches:', error);
+    branches.value = [];
+  } finally {
+    isBranchLoading.value = false;
+  }
+};
+
+const fetchTree = async () => {
+  if (!formData.value.repoName || !formData.value.branchName) return;
   
   isTreeLoading.value = true;
   
@@ -420,12 +522,30 @@ const organizedTree = computed(() => {
 
 const toggleRepoDropdown = () => {
   isRepoDropdownOpen.value = !isRepoDropdownOpen.value;
+  if (isRepoDropdownOpen.value) {
+    isBranchDropdownOpen.value = false;
+  }
+};
+
+const toggleBranchDropdown = () => {
+  if (branches.value.length > 0) {
+    isBranchDropdownOpen.value = !isBranchDropdownOpen.value;
+    if (isBranchDropdownOpen.value) {
+      isRepoDropdownOpen.value = false;
+    }
+  }
 };
 
 const selectRepo = async (repoName) => {
   formData.value.repoName = repoName;
   isRepoDropdownOpen.value = false;
-  await onRepoChange();
+  await fetchBranches();
+};
+
+const selectBranch = async (branchName) => {
+  formData.value.branchName = branchName;
+  isBranchDropdownOpen.value = false;
+  await fetchTree();
 };
 
 const selectFile = (filePath) => {
@@ -494,10 +614,15 @@ const downloadMarkdown = () => {
 onMounted(() => {
   const handleClickOutside = (event) => {
     const repoDropdown = document.querySelector('.custom-select');
+    const branchDropdown = document.querySelectorAll('.custom-select')[1];
     const fileTreeDropdown = document.querySelector('.file-tree-dropdown');
     
     if (repoDropdown && !repoDropdown.contains(event.target)) {
       isRepoDropdownOpen.value = false;
+    }
+    
+    if (branchDropdown && !branchDropdown.contains(event.target)) {
+      isBranchDropdownOpen.value = false;
     }
     
     if (fileTreeDropdown && !fileTreeDropdown.contains(event.target) && 
@@ -679,7 +804,16 @@ onMounted(() => {
   background-color: rgba(88, 166, 255, 0.1);
 }
 
-.repo-icon {
+.empty-item {
+  color: #8b949e;
+  cursor: default;
+}
+
+.empty-item:hover {
+  background-color: transparent;
+}
+
+.repo-icon, .branch-icon {
   color: var(--primary);
 }
 

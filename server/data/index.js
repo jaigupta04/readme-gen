@@ -8,6 +8,14 @@ const genAI = new GoogleGenerativeAI(apiKey);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-thinking-exp-01-21" });
 
 
+async function getBranches(username, repo) {
+  const url = `https://api.github.com/repos/${username}/${repo}/branches`;
+
+  const res = await axios.get(url);
+
+  const branches = res.data.map(branch => branch.name);
+  return branches;
+}
 
 async function fetchAllFiles(username, repo, branch, path = '') {
   const url = `https://api.github.com/repos/${username}/${repo}/contents/${path}?ref=${branch}`;
@@ -58,4 +66,4 @@ async function getReadme(githubId, repoName, branchName, fileName) {
 
 
 
-module.exports = { getReadme, fetchAllFiles }
+module.exports = { getReadme, fetchAllFiles, getBranches }

@@ -15,7 +15,6 @@
         </button>
         <router-link to="/" class="navbar-brand" @click="isMenuOpen = false">
           <img src="../../public/readme_logo4.svg" alt="Logo" width="46" height="46" class="custom-logo" />
-
           <span>README Generator</span>
         </router-link>
       </div>
@@ -30,6 +29,8 @@
         <div class="nav-links">
           <router-link to="/" class="nav-link" @click="isMenuOpen = false">Home</router-link>
           <router-link to="/generator" class="nav-link" @click="isMenuOpen = false">Generator</router-link>
+          <router-link to="/updates" class="nav-link" @click="isMenuOpen = false">Updates</router-link>
+          <!-- <router-link to="/contact" class="nav-link" @click="isMenuOpen = false">Contact</router-link> -->
         </div>
         
         <button v-if="!loggedIn" class="btn btn-outline login-btn" @click="loginWithGitHub">
@@ -64,6 +65,7 @@ const isMenuOpen = ref(false);
 
 const provider = new GithubAuthProvider();
 
+// Initialize loggedIn with the current authentication state
 onMounted(() => {
   onAuthStateChanged(auth, (user) => {
     loggedIn.value = !!user;
@@ -84,7 +86,7 @@ const loginWithGitHub = async () => {
     axios.get('https://api.github.com/user', {
       headers: { Authorization: `Bearer ${token}` }
     }),
-    axios.get('https://api.github.com/user/repos', {
+    axios.get('https://api.github.com/user/repos?type=owner', {
       headers: { Authorization: `Bearer ${token}` }
     })
   ]);
@@ -94,6 +96,7 @@ const loginWithGitHub = async () => {
 
   store.username = username.value;
   store.repos = repos.value;
+  
   store.loggedIn = loggedIn.value;
 };
 
