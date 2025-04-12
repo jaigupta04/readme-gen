@@ -36,7 +36,7 @@
             </div>
             
             <div class="version-content">
-              <h3 class="version-title">Github login</h3>
+              <h3 class="version-title">Github Login</h3>
               
               <div class="version-features">
                 
@@ -96,7 +96,7 @@
             </div>
             
             <div class="version-content">
-              <h3 class="version-title">Download file extension</h3>
+              <h3 class="version-title">Download File Extension</h3>
               
               <div class="version-features">   
                 <div class="feature-item">
