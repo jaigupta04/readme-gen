@@ -11,7 +11,7 @@
           </p>
           
           <div class="contact-methods">
-            <div class="contact-method">
+            <!-- <div class="contact-method">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="contact-icon">
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                 <polyline points="22,6 12,13 2,6"></polyline>
@@ -20,7 +20,7 @@
                 <h3 class="method-title">Email</h3>
                 <a href="mailto:contact@readmegenerator.com" class="contact-link">contact@readmegenerator.com</a>
               </div>
-            </div>
+            </div> -->
             
             <div class="contact-method">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="contact-icon">
@@ -28,17 +28,19 @@
               </svg>
               <div class="contact-details">
                 <h3 class="method-title">GitHub</h3>
-                <a href="https://github.com/yourusername" target="_blank" rel="noopener noreferrer" class="contact-link">github.com/yourusername</a>
+                <a href="https://github.com/jaigupta04" target="_blank" rel="noopener noreferrer" class="contact-link">github.com/jaigupta04</a>
               </div>
             </div>
             
             <div class="contact-method">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="contact-icon">
-                <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
+                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                <rect x="2" y="9" width="4" height="12"></rect>
+                <circle cx="4" cy="4" r="2"></circle>
               </svg>
               <div class="contact-details">
-                <h3 class="method-title">Twitter</h3>
-                <a href="https://twitter.com/yourusername" target="_blank" rel="noopener noreferrer" class="contact-link">@yourusername</a>
+                <h3 class="method-title">LinkedIn</h3>
+                <a href="https://linkedin.com/in/yourusername" target="_blank" rel="noopener noreferrer" class="contact-link">linkedin.com/in/yourusername</a>
               </div>
             </div>
           </div>
@@ -125,6 +127,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import axios from 'axios';
 
 const formData = ref({
   name: '',
@@ -140,14 +143,8 @@ const submitForm = async () => {
   isSubmitting.value = true;
   
   try {
-    // Here you would typically send the form data to your backend
-    // For example:
-    // await axios.post('/api/contact', formData.value);
-    
-    // Simulate API call with a delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Reset form after successful submission
+    await axios.post('/api/contact', formData.value);
+
     formData.value = {
       name: '',
       email: '',
@@ -163,7 +160,6 @@ const submitForm = async () => {
     }, 5000);
   } catch (error) {
     console.error('Error submitting form:', error);
-    // Handle error (show error message, etc.)
   } finally {
     isSubmitting.value = false;
   }

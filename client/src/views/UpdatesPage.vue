@@ -28,6 +28,31 @@
         </div> -->
         
         <div class="version-timeline">
+          <!-- Version 2.2.0 -->
+          <div class="version-item">
+            <div class="version-badge">
+              <span class="version-number">v2.2.0</span>
+              <span class="version-date">April 13, 2025</span>
+            </div>
+            
+            <div class="version-content">
+              <h3 class="version-title">Contact Us & UI Enhancements</h3>
+              
+              <div class="version-features">
+                <div class="feature-item">
+                  <div class="feature-header">
+                    <div class="feature-tag new">New</div>
+                    <h4 class="feature-title">Contact Us Page Is Added</h4>
+                  </div>
+                  <p class="feature-description">
+                    Implemented a contact form to enable users to submit queries or suggestions directly.
+                  </p>
+                </div>
+              
+              </div>
+            </div>
+          </div>
+
           <!-- Version 2.1.1 -->
           <div class="version-item">
             <div class="version-badge">

@@ -30,7 +30,7 @@
           <router-link to="/" class="nav-link" @click="isMenuOpen = false">Home</router-link>
           <router-link to="/generator" class="nav-link" @click="isMenuOpen = false">Generator</router-link>
           <router-link to="/updates" class="nav-link" @click="isMenuOpen = false">Updates</router-link>
-          <!-- <router-link to="/contact" class="nav-link" @click="isMenuOpen = false">Contact</router-link> -->
+          <router-link to="/contact" class="nav-link" @click="isMenuOpen = false">Contact Us</router-link>
         </div>
         
         <button v-if="!loggedIn" class="btn btn-outline login-btn" @click="loginWithGitHub">
@@ -40,9 +40,16 @@
           Login with GitHub
         </button>
 
-        <button v-else class="btn btn-outline logout-btn" @click="signOut">
-          Logout
-        </button>
+        <div v-else class="user-menu">
+          <button class="btn btn-outline logout-btn" @click="signOut">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="logout-icon">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Logout
+          </button>
+        </div>
       </nav>
       
       <div class="overlay" v-if="isMenuOpen" @click="isMenuOpen = false"></div>
@@ -69,6 +76,8 @@ provider.setCustomParameters({
 });
 
 // Initialize loggedIn with the current authentication state
+const savedToken = ref(localStorage.getItem('github_token') || ''); // Initialize with value from localStorage
+
 onMounted(() => {
   onAuthStateChanged(auth, async (user) => {
     loggedIn.value = !!user;
@@ -79,15 +88,14 @@ onMounted(() => {
       // Get GitHub OAuth access token from user credential (stored elsewhere if needed)
       // If you can't get it, persist it in localStorage during login
       
-      const savedToken = localStorage.getItem('github_token');
-      if (savedToken) {
+      if (savedToken.value) {
         try {
           const [userResponse, reposResponse] = await Promise.all([
             axios.get('https://api.github.com/user', {
-              headers: { Authorization: `Bearer ${savedToken}` }
+              headers: { Authorization: `Bearer ${savedToken.value}` }
             }),
             axios.get('https://api.github.com/user/repos?type=owner', {
-              headers: { Authorization: `Bearer ${savedToken}` }
+              headers: { Authorization: `Bearer ${savedToken.value}` }
             })
           ]);
 
@@ -113,6 +121,7 @@ const loginWithGitHub = async () => {
   const credential = GithubAuthProvider.credentialFromResult(result);
   const token = credential.accessToken;
   localStorage.setItem('github_token', token);
+  savedToken.value = token;
   const user = result.user;
 
   loggedIn.value = true;
@@ -140,6 +149,7 @@ const signOut = async () => {
   
   await firebaseSignOut(auth);
   localStorage.removeItem('github_token');
+  savedToken.value = '';
 
   loggedIn.value = false;
   username.value = '';
@@ -232,6 +242,30 @@ const signOut = async () => {
   align-items: center;
 }
 
+/* Enhanced logout button styling */
+.user-menu {
+  display: flex;
+  align-items: center;
+}
+
+.logout-btn {
+  background-color: rgba(249, 62, 62, 0.1);
+  color: #f93e3e;
+  border-color: rgba(249, 62, 62, 0.3);
+  transition: all 0.2s ease;
+  padding: 0.5rem 1rem;
+  gap: 0.5rem;
+}
+
+.logout-btn:hover {
+  background-color: rgba(249, 62, 62, 0.2);
+  border-color: rgba(249, 62, 62, 0.5);
+}
+
+.logout-icon {
+  color: #f93e3e;
+}
+
 .mobile-close-btn {
   display: none;
   position: absolute;
@@ -303,7 +337,7 @@ const signOut = async () => {
     border-bottom: 1px solid var(--border);
   }
   
-  .login-btn, .logout-btn {
+  .login-btn, .user-menu {
     margin-left: 1.5rem;
   }
 }

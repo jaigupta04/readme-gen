@@ -49,6 +49,15 @@ app.get('/api/generate', async (req, res) => {
 
 });
 
+app.post("/api/contact", async (req, res) => {
+  const { name, email, subject, message } = req.body;
+
+  const resp = await Data.sendMail(name, email, subject, message);
+
+  res.status(200).json({ message: "Message sent successfully!" });
+});
+
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

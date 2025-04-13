@@ -9,8 +9,8 @@
             No more struggling with markdown syntax or formatting.
           </p>
           <div class="hero-actions">
-            <router-link to="/generator" class="btn btn-primary">Get Started</router-link>
-            <a href="#features" class="btn btn-outline">Learn More</a>
+            <router-link to="/generator" class="btn btn-primary no-underline">Get Started</router-link>
+            <a href="#features" class="btn btn-outline no-underline">Learn More</a>
           </div>
         </div>
         <div class="hero-image">
@@ -140,6 +140,11 @@
 .hero-actions {
   display: flex;
   gap: 1rem;
+}
+
+/* Remove underlines from buttons */
+.no-underline {
+  text-decoration: none;
 }
 
 .section-title {

@@ -1,5 +1,6 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const axios = require('axios');
+const nodemailer = require("nodemailer");
 
 require('dotenv').config();
 
@@ -64,6 +65,27 @@ async function getReadme(githubId, repoName, branchName, fileName) {
   return botRes.replace(/^```markdown\s+([\s\S]*?)\s*```$/, '$1').trim();
 }
 
+async function sendMail(name, email, subject, message) {
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  const mailOptions = {
+    from: email,
+    to: process.env.TO_EMAIL,
+    subject: `[Contact Form] ${subject}`,
+    text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
+  };
+
+  await transporter.sendMail(mailOptions);
+
+  return true;
+}
 
 
-module.exports = { getReadme, fetchAllFiles, getBranches }
+module.exports = { getReadme, fetchAllFiles, getBranches, sendMail }
