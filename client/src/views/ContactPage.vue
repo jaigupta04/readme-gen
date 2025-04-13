@@ -40,7 +40,7 @@
               </svg>
               <div class="contact-details">
                 <h3 class="method-title">LinkedIn</h3>
-                <a href="https://linkedin.com/in/yourusername" target="_blank" rel="noopener noreferrer" class="contact-link">linkedin.com/in/yourusername</a>
+                <a href="https://linkedin.com/in/jai-gupta-66b60125b" target="_blank" rel="noopener noreferrer" class="contact-link">linkedin.com/in/jai-gupta-66b60125b</a>
               </div>
             </div>
           </div>
